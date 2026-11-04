@@ -1,69 +1,107 @@
-import Image from "next/image";
+'use client';
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
 
 export default function Home() {
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Fetch upcoming events from backend
+    fetch('http://localhost:5000/api/events')
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setEvents(data.slice(0, 3)); // Show top 3 upcoming events on home
+        }
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error('Error fetching events:', err);
+        setLoading(false);
+      });
+  }, []);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.js
-            </code>{" "}
-            file.
+    <div className="space-y-12 pb-16">
+      {/* Hero Section */}
+      <section className="bg-emerald-700 text-white py-20 px-4 text-center rounded-b-3xl shadow-lg">
+        <div className="max-w-3xl mx-auto space-y-6">
+          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight">
+            Empowering Communities Through Social Development
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="text-lg md:text-xl text-emerald-100">
+            Join local initiatives, participate in community service events, and make a meaningful impact together.
           </p>
+          <div className="flex justify-center gap-4 pt-4">
+            <Link
+              href="/events"
+              className="bg-white text-emerald-700 font-semibold px-6 py-3 rounded-lg shadow hover:bg-emerald-50 transition"
+            >
+              Explore Events
+            </Link>
+            <Link
+              href="/events/create"
+              className="border-2 border-white text-white font-semibold px-6 py-3 rounded-lg hover:bg-white/10 transition"
+            >
+              Create Event
+            </Link>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+      </section>
+
+      {/* Featured / Upcoming Events Section */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center mb-8">
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white">
+            Upcoming Social Events
+          </h2>
+          <Link
+            href="/events"
+            className="text-emerald-600 hover:text-emerald-700 font-medium dark:text-emerald-400"
           >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            View All →
+          </Link>
         </div>
-      </main>
+
+        {loading ? (
+          <div className="text-center py-12 text-gray-500">Loading events...</div>
+        ) : events.length === 0 ? (
+          <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-xl shadow p-6">
+            <p className="text-gray-600 dark:text-gray-400">No upcoming events found. Be the first to create one!</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {events.map((event) => (
+              <div
+                key={event._id}
+                className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden border dark:border-gray-700 flex flex-col"
+              >
+                <img
+                  src={event.thumbnail || "https://via.placeholder.com/400x200"}
+                  alt={event.title}
+                  className="w-full h-48 object-cover"
+                />
+                <div className="p-6 flex flex-col flex-grow space-y-3">
+                  <span className="text-xs font-semibold px-2.5 py-1 bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200 rounded-full w-max">
+                    {event.eventType}
+                  </span>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                    {event.title}
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+                    {event.description}
+                  </p>
+                  <div className="pt-4 mt-auto border-t dark:border-gray-700 flex justify-between items-center text-xs text-gray-500 dark:text-gray-400">
+                    <span>📍 {event.location}</span>
+                    <span>📅 {new Date(event.eventDate).toLocaleDateString()}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   );
 }
